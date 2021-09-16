@@ -1,0 +1,9 @@
+cnradical==0.1.0
+jieba==0.42.1
+numpy==1.21.2
+pinyin==0.4.0
+pycorrector==0.3.2
+pypinyin==0.42.0
+six==1.16.0
+xpinyin==0.7.6
+zhon==1.1.5
