@@ -24,18 +24,18 @@ class SensitiveWords:
         self.totalwords = 0  # 累计匹配到的敏感词总数
 
     # 分析每行敏感词
-    def analyze(self, path, bspath):
+    def analyze(self, path):
         with open(path, encoding='utf-8') as f0:
             # 处理敏感词文档中的每一行
             for eachline in f0:
-                self.handle_sensitivewords(str(eachline).strip(), bspath)
+                self.transform(str(eachline).strip())
             # print(SenWordDict)
             # 将字典中的每一个key值，即拼音分别存入trie树中
             for key, value in SenWordDict.items():
                 self.create_sensitivewordsmap(key)
             # 输出trie树
             # print(self.SenWordMap)
-
+    '''
     # 处理敏感词，先匹配中文部首再获取拼音并组合
     def handle_sensitivewords(self, line0, bushoupath1):
         words = line0.strip()  # 敏感词去除首尾空格和换行
@@ -47,6 +47,11 @@ class SensitiveWords:
                 txt = fb.read()
                 txtlist = list(txt)
                 for ch in words:
+                    # print(ch)
+                    # print(txtlist)
+                    if ch not in txtlist:
+                        bsflag=1
+                        continue
                     for i in range(len(txtlist)):
                         if ch == txtlist[i]:
                             str1 = ""
@@ -54,12 +59,13 @@ class SensitiveWords:
                                 str1 += txtlist[j]
                             bushou.append(str1)
                 # print(bushou)
+        print(bushou)
         self.transform(words, bushou, bsflag)
-
+    '''
     # 将每个敏感词转化为拼音，并进行排列组合
-    def transform(self, words, bs, bsflag):
+    def transform(self, words):
+        words = words.strip()
         senwordlist = []
-        i = 0
         # 遍历每个敏感词中的每一个字符
         for char in words:
             complete = ""
@@ -67,12 +73,7 @@ class SensitiveWords:
             for item1 in pypinyin.pinyin(char, style=pypinyin.NORMAL):    # 不带声调的拼音
                 initials += "".join(item1[0][0])  # 存入首字母
                 complete += "".join(item1)     # 存入完整拼音
-                if bsflag == 0:     # 是英文
-                    senwordlist.append([complete, initials, complete])
-                else:       # 是中文
-                    # print("bs[%d]=%s"%(i,bs[i]))
-                    senwordlist.append([complete, initials, bs[i]])
-                    i += 1
+                senwordlist.append([complete, initials])
         # print(senwordlist)
         if not words:
             return
@@ -95,9 +96,6 @@ class SensitiveWords:
         str2 = ch + swlist[cnt][1]
         # print("str2=%s"%str2)
         self.combine_char(cnt + 1, wordslen, str2, value, swlist)
-        str3 = ch + swlist[cnt][2]
-        # print("str3=%s" % str3)
-        self.combine_char(cnt + 1, wordslen, str3, value, swlist)
 
     # 创建敏感词树trie
     def create_sensitivewordsmap(self, words):
@@ -123,13 +121,6 @@ class SensitiveWords:
                         nextmap, nextwords = nowmap, words[j]
                         nowmap = nowmap[words[j]]
                         j += 1
-                    else:       # 如果是中文，说明是偏旁部首，占两个
-                        s = words[j]+words[j+1]
-                        # print("%d:%s"%(j,s))
-                        nowmap[s] = {}
-                        nextmap, nextwords = nowmap, s
-                        nowmap = nowmap[s]
-                        j += 2
                     if j >= length:
                         break
                 nextmap[nextwords] = {self.delimit: 0}
@@ -208,14 +199,16 @@ if __name__ == "__main__":
     sys.argv[3]     # 答案文件  
     '''
     sw = SensitiveWords()
-    sw.analyze(sys.argv[1], "bushou.txt")
+    sw.analyze(sys.argv[1])
     with open(sys.argv[2], encoding='utf-8') as f:
         lines = f.readlines()
-        linecnt = 0
-        total = 0
+        linecnt = 0  # 行数
+        total = 0   # 文章中敏感词总数
         for line in lines:
             linecnt += 1
             total = sw.match_sensitivewords(line, linecnt)
+
+    # 将结果写入答案文件中
     with open(sys.argv[3], "w+", encoding='utf-8') as f1:
         f1.write("Total: %d\n" % total)
         # print("Total: %d"%total)
@@ -226,3 +219,4 @@ if __name__ == "__main__":
 
     time2 = time.time()
     print("耗时：%ss" % str(time2-time1))
+    
