@@ -185,7 +185,7 @@ class SensitiveWords:
                             end = ptr + 1   # 记录下敏感词在原文中匹配到的终止位置
                             textswwords = text[start:end]  # 原文敏感词
                             # 将三个值存为一行字符串，便于输出
-                            answer.append("Line%d: <%s>%s" % (linecnt1, SenWordDict[swwords], textswwords))
+                            answer.append("Line%d: <%s> %s" % (linecnt1, SenWordDict[swwords], textswwords))
                             signflag = 0
                             exitflag = 1
                             break
